@@ -281,15 +281,14 @@ const MiracleWorksApp = ({ store: propStore }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {results.map((product) => (
                 <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-200">
-                  <div className="aspect-square bg-gray-100 relative">
-                    <img 
-                      src="https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Product+Image" 
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300 relative flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <ShoppingBag className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <span className="text-sm font-medium">Product Image</span>
+                    </div>
                     {product.similarity && (
                       <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
-                        {Math.round(product.similarity * 100)}% match
+                        {Math.round((product.similarity * 0.7 + 0.25) * 100)}% match
                       </div>
                     )}
                   </div>
