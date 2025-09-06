@@ -198,17 +198,17 @@ const MiracleWorksApp = ({ store: propStore }) => {
           <div className="flex justify-center space-x-4 text-sm">
             <span className="text-gray-500">Try other demos:</span>
             <button
-              onClick={() => window.open('/zamels', '_blank')}
-              className={`${store === 'zamels' ? 'font-semibold text-purple-600' : 'text-gray-600 hover:text-purple-600'} transition-colors`}
+              onClick={() => window.open('/jewelry-store', '_blank')}
+              className={`${store === 'jewelry-store' || store === 'zamels' ? 'font-semibold text-purple-600' : 'text-gray-600 hover:text-purple-600'} transition-colors`}
             >
-              Zamels Jewelry
+              Premium Jewelry Co
             </button>
             <span className="text-gray-300">|</span>
             <button
-              onClick={() => window.open('/sydneystreet', '_blank')}
-              className={`${store === 'sydneystreet' ? 'font-semibold text-blue-600' : 'text-gray-600 hover:text-blue-600'} transition-colors`}
+              onClick={() => window.open('/fashion-store', '_blank')}
+              className={`${store === 'fashion-store' || store === 'sydneystreet' ? 'font-semibold text-blue-600' : 'text-gray-600 hover:text-blue-600'} transition-colors`}
             >
-              Sydney Street Fashion
+              Modern Fashion Co
             </button>
           </div>
         </div>

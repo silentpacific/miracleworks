@@ -11,6 +11,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// Map frontend store names to database store names
+const storeMapping = {
+  'jewelry-store': 'zamels',
+  'fashion-store': 'sydneystreet',
+  'zamels': 'zamels',
+  'sydneystreet': 'sydneystreet'
+};
+
 async function generateEmbedding(text) {
   try {
     const response = await openai.embeddings.create({
@@ -29,12 +37,15 @@ async function searchProducts(query, storeFilter = null, limit = 20) {
     // Generate embedding for search query
     const queryEmbedding = await generateEmbedding(query);
     
+    // Map frontend store name to database store name
+    const dbStoreName = storeFilter ? storeMapping[storeFilter] || storeFilter : null;
+    
     // Call Supabase search function
     const { data, error } = await supabase
       .rpc('search_products', {
         query_embedding: queryEmbedding,
-        store_filter: storeFilter,
-        match_threshold: 0.2, // Much lower threshold for better results
+        store_filter: dbStoreName,
+        match_threshold: 0.2, // Lower threshold for better results
         match_count: limit
       });
       
@@ -87,10 +98,10 @@ export async function handler(event, context) {
     }
 
     // Clean and validate store parameter
-    const validStores = ['zamels', 'sydneystreet'];
+    const validStores = ['jewelry-store', 'fashion-store', 'zamels', 'sydneystreet'];
     const storeFilter = validStores.includes(store) ? store : null;
 
-    console.log(`Searching for "${query}" in store "${storeFilter || 'all'}"`);
+    console.log(`Searching for "${query}" in store "${storeFilter || 'all'}" (mapped to: ${storeMapping[storeFilter] || 'all'})`);
     
     const results = await searchProducts(query.trim(), storeFilter, Math.min(limit, 50));
     
