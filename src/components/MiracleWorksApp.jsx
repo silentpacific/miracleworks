@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Star, ShoppingBag, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Star, ShoppingBag, Sparkles, Diamond, Shirt } from 'lucide-react';
 
-const MiracleWorksApp = () => {
+const MiracleWorksApp = ({ store: propStore }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [store, setStore] = useState('zamels');
+  const [store, setStore] = useState(() => {
+    // Use prop store if provided, otherwise auto-detect from URL
+    if (propStore) return propStore;
+    const path = window.location.pathname;
+    if (path.includes('zamels')) return 'zamels';
+    if (path.includes('sydneystreet')) return 'sydneystreet';
+    return 'zamels'; // default
+  });
 
   // Demo queries to inspire users
   const demoQueries = {
@@ -15,17 +22,49 @@ const MiracleWorksApp = () => {
       "wedding ring for men", 
       "red stone ring",
       "something sparkly for ears",
-      "elegant necklace for dinner"
+      "elegant necklace for dinner",
+      "diamond earrings",
+      "engagement ring proposal"
     ],
     sydneystreet: [
       "casual summer dress",
-      "warm winter coat",
+      "warm winter coat", 
       "shoes for wedding",
       "designer handbag",
       "comfortable jeans",
-      "statement jewelry"
+      "statement jewelry",
+      "office outfit",
+      "weekend casual wear"
     ]
   };
+
+  // Store branding
+  const storeConfig = {
+    zamels: {
+      name: "Zamels Jewelry",
+      tagline: "Exquisite Jewelry for Life's Special Moments",
+      icon: Diamond,
+      colors: {
+        primary: "purple-600",
+        secondary: "purple-100",
+        accent: "gold-500"
+      },
+      gradient: "from-purple-50 to-pink-50"
+    },
+    sydneystreet: {
+      name: "Sydney Street Fashion", 
+      tagline: "Contemporary Fashion for the Modern You",
+      icon: Shirt,
+      colors: {
+        primary: "blue-600",
+        secondary: "blue-100", 
+        accent: "blue-500"
+      },
+      gradient: "from-blue-50 to-indigo-50"
+    }
+  };
+
+  const currentStore = storeConfig[store];
 
   const searchProducts = async (searchQuery) => {
     if (!searchQuery.trim()) return;
@@ -44,11 +83,22 @@ const MiracleWorksApp = () => {
         })
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       setResults(data.results || []);
+      
+      // Show success message for demo
+      if (data.results && data.results.length > 0) {
+        console.log(`🎯 Found ${data.results.length} products for "${searchQuery}"`);
+      }
     } catch (error) {
       console.error('Search error:', error);
       setResults([]);
+      // Show fallback message
+      alert('Search temporarily unavailable. Please try again in a moment.');
     } finally {
       setLoading(false);
     }
@@ -71,29 +121,30 @@ const MiracleWorksApp = () => {
     }).format(price);
   };
 
+  const IconComponent = currentStore.icon;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className={`min-h-screen bg-gradient-to-br ${currentStore.gradient}`}>
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Sparkles className="w-8 h-8 text-purple-600" />
+              <IconComponent className={`w-8 h-8 text-${currentStore.colors.primary}`} />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">MiracleWorks</h1>
-                <p className="text-sm text-gray-600">AI-Powered Product Discovery</p>
+                <h1 className="text-2xl font-bold text-gray-900">{currentStore.name}</h1>
+                <p className="text-sm text-gray-600">{currentStore.tagline}</p>
               </div>
             </div>
             
             {/* Store Selector */}
-            <select 
-              value={store} 
-              onChange={(e) => setStore(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="zamels">Zamels Jewelry</option>
-              <option value="sydneystreet">Sydney Street Fashion</option>
-            </select>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-500">Powered by</span>
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                <span className="font-semibold text-gray-900">MiracleWorks AI</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -142,6 +193,24 @@ const MiracleWorksApp = () => {
               </button>
             ))}
           </div>
+
+          {/* Store Switch Links */}
+          <div className="flex justify-center space-x-4 text-sm">
+            <span className="text-gray-500">Try other demos:</span>
+            <button
+              onClick={() => window.open('/zamels', '_blank')}
+              className={`${store === 'zamels' ? 'font-semibold text-purple-600' : 'text-gray-600 hover:text-purple-600'} transition-colors`}
+            >
+              Zamels Jewelry
+            </button>
+            <span className="text-gray-300">|</span>
+            <button
+              onClick={() => window.open('/sydneystreet', '_blank')}
+              className={`${store === 'sydneystreet' ? 'font-semibold text-blue-600' : 'text-gray-600 hover:text-blue-600'} transition-colors`}
+            >
+              Sydney Street Fashion
+            </button>
+          </div>
         </div>
 
         {/* Results */}
@@ -189,7 +258,7 @@ const MiracleWorksApp = () => {
                     </p>
                     
                     <div className="flex items-center justify-between">
-                      <span className={`text-lg font-bold text-${currentStore.colors.primary}`}>
+                      <span className="text-lg font-bold text-purple-600">
                         {formatPrice(product.price, product.currency)}
                       </span>
                       
@@ -201,7 +270,7 @@ const MiracleWorksApp = () => {
                       </div>
                     </div>
                     
-                    <button className={`w-full mt-3 bg-${currentStore.colors.primary} text-white py-2 rounded-lg hover:bg-${currentStore.colors.primary.replace('600', '700')} transition-colors flex items-center justify-center space-x-2`}>
+                    <button className="w-full mt-3 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2">
                       <ShoppingBag className="w-4 h-4" />
                       <span>View Product</span>
                     </button>
@@ -235,7 +304,7 @@ const MiracleWorksApp = () => {
             <button className="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
               Request Demo for Your Store
             </button>
-            <button className={`border-2 border-${currentStore.colors.primary} text-${currentStore.colors.primary} px-6 py-3 rounded-lg hover:bg-${currentStore.colors.secondary} transition-colors`}>
+            <button className="border-2 border-purple-600 text-purple-600 px-6 py-3 rounded-lg hover:bg-purple-100 transition-colors">
               Learn More
             </button>
           </div>
