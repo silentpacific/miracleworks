@@ -9,13 +9,34 @@ const MiracleWorksApp = ({ store: propStore }) => {
     // Use prop store if provided, otherwise auto-detect from URL
     if (propStore) return propStore;
     const path = window.location.pathname;
-    if (path.includes('zamels')) return 'zamels';
-    if (path.includes('sydneystreet')) return 'sydneystreet';
-    return 'zamels'; // default
+    if (path.includes('jewelry-store') || path.includes('zamels')) return 'jewelry-store';
+    if (path.includes('fashion-store') || path.includes('sydneystreet')) return 'fashion-store';
+    return 'jewelry-store'; // default
   });
 
   // Demo queries to inspire users
   const demoQueries = {
+    'jewelry-store': [
+      "ring with one stone",
+      "gold hoops for everyday",
+      "wedding ring for men", 
+      "red stone ring",
+      "something sparkly for ears",
+      "elegant necklace for dinner",
+      "diamond earrings",
+      "engagement ring proposal"
+    ],
+    'fashion-store': [
+      "casual summer dress",
+      "warm winter coat", 
+      "shoes for wedding",
+      "designer handbag",
+      "comfortable jeans",
+      "statement jewelry",
+      "office outfit",
+      "weekend casual wear"
+    ],
+    // Keep legacy support
     zamels: [
       "ring with one stone",
       "gold hoops for everyday",
@@ -40,8 +61,31 @@ const MiracleWorksApp = ({ store: propStore }) => {
 
   // Store branding
   const storeConfig = {
+    'jewelry-store': {
+      name: "Premium Jewelry Co",
+      tagline: "Exquisite Jewelry for Life's Special Moments",
+      icon: Diamond,
+      colors: {
+        primary: "purple-600",
+        secondary: "purple-100",
+        accent: "gold-500"
+      },
+      gradient: "from-purple-50 to-pink-50"
+    },
+    'fashion-store': {
+      name: "Modern Fashion Co", 
+      tagline: "Contemporary Fashion for the Modern You",
+      icon: Shirt,
+      colors: {
+        primary: "blue-600",
+        secondary: "blue-100", 
+        accent: "blue-500"
+      },
+      gradient: "from-blue-50 to-indigo-50"
+    },
+    // Legacy support
     zamels: {
-      name: "Zamels Jewelry",
+      name: "Premium Jewelry Co",
       tagline: "Exquisite Jewelry for Life's Special Moments",
       icon: Diamond,
       colors: {
@@ -52,7 +96,7 @@ const MiracleWorksApp = ({ store: propStore }) => {
       gradient: "from-purple-50 to-pink-50"
     },
     sydneystreet: {
-      name: "Sydney Street Fashion", 
+      name: "Modern Fashion Co", 
       tagline: "Contemporary Fashion for the Modern You",
       icon: Shirt,
       colors: {
@@ -64,13 +108,17 @@ const MiracleWorksApp = ({ store: propStore }) => {
     }
   };
 
-  const currentStore = storeConfig[store];
+  const currentStore = storeConfig[store] || storeConfig['jewelry-store']; // Fallback to jewelry-store
 
   const searchProducts = async (searchQuery) => {
     if (!searchQuery.trim()) return;
     
     setLoading(true);
     try {
+      // Map new store names to legacy backend names
+      const backendStore = store === 'jewelry-store' ? 'zamels' : 
+                          store === 'fashion-store' ? 'sydneystreet' : store;
+      
       const response = await fetch('/.netlify/functions/search', {
         method: 'POST',
         headers: {
@@ -78,7 +126,7 @@ const MiracleWorksApp = ({ store: propStore }) => {
         },
         body: JSON.stringify({
           query: searchQuery,
-          store: store,
+          store: backendStore,
           limit: 12
         })
       });
@@ -167,7 +215,7 @@ const MiracleWorksApp = ({ store: propStore }) => {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Try: "${demoQueries[store][0]}" or "${demoQueries[store][1]}"`}
+                placeholder={`Try: "${demoQueries[store]?.[0] || "ring with one stone"}" or "${demoQueries[store]?.[1] || "gold hoops"}"`}
                 className="w-full pl-12 pr-6 py-4 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-200"
               />
               <button
@@ -183,7 +231,7 @@ const MiracleWorksApp = ({ store: propStore }) => {
           {/* Demo Query Pills */}
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             <span className="text-sm text-gray-500 mr-2">Try these:</span>
-            {demoQueries[store].slice(0, 4).map((demo, index) => (
+            {(demoQueries[store] || demoQueries['jewelry-store']).slice(0, 4).map((demo, index) => (
               <button
                 key={index}
                 onClick={() => tryDemoQuery(demo)}
@@ -235,12 +283,9 @@ const MiracleWorksApp = ({ store: propStore }) => {
                 <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-200">
                   <div className="aspect-square bg-gray-100 relative">
                     <img 
-                      src={product.image_url} 
+                      src="https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Product+Image" 
                       alt={product.name}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = `https://via.placeholder.com/400x400/f3f4f6/6b7280?text=${encodeURIComponent(product.name)}`;
-                      }}
                     />
                     {product.similarity && (
                       <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
